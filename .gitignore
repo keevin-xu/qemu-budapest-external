@@ -1,28 +1,49 @@
-/GNUmakefile
-build/
-/.cache/
-/.vscode/
+# QEMU build outputs
+/qemu/build/
+/qemu/GNUmakefile
+
+# Bootrom build outputs
+/bootrom_project/*.elf
+/bootrom_project/*.bin
+/bootrom_project/*.o
+/bootrom_project/*.map
+/bootrom_project/*.hex
+/bootrom_project/*.lst
+/bootrom_project/*.dis
+/bootrom_project/*.su
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+# macOS
+.DS_Store
+*/.DS_Store
+
+# Python/cache
+__pycache__/
 *.pyc
-.sdk
+.cache/
+
+# Git/tool artifacts
 .stgit-*
 .git-submodule-status
-.clang-format
 .gdb_history
+
+# Tags/index files
 cscope.*
 tags
 TAGS
 GPATH
 GRTAGS
 GTAGS
-*~
-*.ast_raw
-*.depend_raw
-*.swp
-*.patch
+
+# Coverage / debug artifacts
 *.gcov
-qemu/build/ 
-bootrom_project/*.elf
-bootrom_project/*.bin
-bootrom_project/*.o
-bootrom_project/*.map
-.DS_Store
+*.gcda
+*.gcno
+
+# Patch files, if you do not want to track them
+*.patch
