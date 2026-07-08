@@ -20,3 +20,7 @@ GTAGS
 *.swp
 *.patch
 *.gcov
+/qemu/subprojects/berkeley-softfloat-3/
+/qemu/subprojects/berkeley-testfloat-3/
+/qemu/subprojects/dtc/
+/qemu/subprojects/keycodemapdb/
