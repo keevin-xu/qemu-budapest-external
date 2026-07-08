@@ -45,3 +45,6 @@
 [submodule "tests/lcitool/libvirt-ci"]
 	path = tests/lcitool/libvirt-ci
 	url = https://gitlab.com/libvirt/libvirt-ci.git
+[submodule "hw/arm/budapest"]
+	path = hw/arm/budapest
+	url = https://github.com/SambitKanjilal/qemuBudapest.git

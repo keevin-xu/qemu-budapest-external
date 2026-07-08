@@ -717,3 +717,10 @@ config ARMSSE
     select UNIMP
     select SSE_COUNTER
     select SSE_TIMER
+
+config BUDAPEST_MACHINE
+    bool
+    default y
+    depends on TCG && ARM
+    select ARM_V7M
+    select SSI
