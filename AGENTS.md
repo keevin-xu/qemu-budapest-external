@@ -18,6 +18,29 @@ easy part. The useful work is modeling the MCU-specific memory map, boot
 environment, flash controller behavior, protection state, and peripherals closely
 enough that bootrom decisions are meaningful.
 
+## Project Overview
+
+This is a QEMU-based Budapest MCU model used to run and validate real bootrom
+code before hardware is available. The emulator should behave like firmware sees
+the MCU, especially during reset, boot configuration, flash/NVM access,
+protection checks, and handoff to user firmware.
+
+The project is not trying to be a perfect electrical or cycle-accurate model at
+this stage. The priority is a bootrom-useful machine:
+
+- load a compiled bootrom or firmware image
+- expose the expected memory map and reset state
+- model flash, EEPROM, NVR, and protection behavior accurately enough for
+  bootrom decisions
+- provide register-level peripheral behavior where bootrom or early firmware
+  reads, writes, polls, or depends on it
+- keep placeholders explicit when hardware behavior is not yet known
+
+The source tree may be used from an outer QEMU checkout with `hw/arm/budapest`
+as a nested Budapest implementation. Treat the nested Budapest directory as the
+authoritative place for the custom machine code, and check both the outer repo
+and nested repo status before committing.
+
 ## QEMU Direction
 
 There is already a base QEMU version in this repository. A fresh Codex
@@ -35,12 +58,78 @@ Avoid overfitting to Renode-specific structure. QEMU implementation should use
 normal QEMU machine, memory region, device, MMIO, reset, IRQ, and migration
 patterns.
 
+## Current QEMU Handoff Notes
+
+Fresh Codex instances should first inspect the current Budapest implementation
+before proposing a design. The Budapest code is intentionally local to
+`hw/arm/budapest` and currently uses this shape:
+
+- `core/` contains the board and SoC glue.
+- `peripherals/` contains individual MMIO device models and headers.
+- `meson.build` is the source list for the Budapest machine.
+- `README.md` records the current modeled status and known gaps.
+
+The SoC is the central composition point. It creates child devices, maps their
+MMIO windows, connects IRQs to the Cortex-M NVIC, and wires the few modeled
+cross-peripheral relationships. Most peripherals are still self-contained MMIO
+models with local register state. Do not assume that a register write in one
+peripheral already affects another peripheral unless the connection is explicit
+in `core/tle9855_soc.c` or the relevant peripheral source.
+
+Currently modeled cross-peripheral behavior is concentrated in flash, EEPROM,
+NVR, and EFC:
+
+- EFC commands operate on the flash and NVR models.
+- Flash protection, passwords, and BSL/CL/DL/DN layout are derived from NVR.
+- NVR direct access is gated by the CL password token.
+- EEPROM is modeled as the final 8 KB DN subrange of the same flash array.
+
+Many other cross-peripheral effects are placeholders or local approximations:
+
+- Peripheral IRQs are mostly wired directly to NVIC instead of through a full
+  SCU interrupt aggregation model.
+- SCU clock changes do not yet dynamically retime all dependent peripherals.
+- ADC values, SPI/SSC external transfers, pin muxing, and analog behavior are
+  not complete hardware models unless a source file clearly says otherwise.
+- Stub MMIO regions may return fixed values or ignore writes.
+
+When taking over a context handoff, check the implementation state with
+`git status`, inspect `hw/arm/budapest/README.md`, and read the touched source
+files instead of relying only on previous chat summaries.
+
+## Current Budapest Memory Model
+
+The current model includes these bootrom-relevant memory areas:
+
+- Flash: `0x11000000-0x1101ffff`, 128 KB.
+- EEPROM emulation: `0x1101e000-0x1101ffff`, final 8 KB of flash.
+- NVR register sector: `0x11020000-0x110207ff`, 2 KB.
+- SRAM: modeled by the SoC memory map.
+
+Flash and EEPROM are not a generic QEMU pflash device. They are a custom
+Budapest flash model so project-specific protection, password, erase, and
+EEPROM protected-word behavior can be represented.
+
+Important caveat: runtime flash read protection affects instruction fetches.
+Bytes loaded with `-kernel` can exist in the flash backing array but still read
+as erased-looking data until the modeled protection state allows access. If a
+firmware smoke test unexpectedly fails at reset, check whether the test needs a
+bootrom/unlock path, a loader bypass, or different protection defaults.
+
 ## Hardware Basis
 
 The emulated peripherals should be based on the Infineon TLE9854 family.
 
-The user will provide hardware documents as needed. Primary references are:
+The user will provide hardware documents as needed. Use Budapest project design
+specs as the first source of truth for implementation decisions. If no relevant
+Budapest design spec or project-specific model exists for the behavior being
+implemented, use the TLE9854/TLE985x references. If Budapest docs contradict
+generic TLE documentation, follow the Budapest docs and document the
+project-specific choice in the relevant spec, behavior doc, or code comment.
 
+Primary references, in priority order:
+
+- Budapest digital design specifications and project-specific model docs
 - TLE9854 datasheet
 - TLE985x/TLE9854 user manual
 - TLE9854 firmware/user firmware documentation, if needed
