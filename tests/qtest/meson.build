@@ -234,11 +234,18 @@ qtests_stm32l4x5 = \
    'stm32l4x5_usart-test']
 
 qtests_budapest = \
-  ['budapest-uart-test',
+  ['budapest-bootrom-test',
+   'budapest-uart-test',
    'budapest-pmu-test',
    'budapest-gpio-test',
+   'budapest-wdt-test',
+   'budapest-ccu6-test',
+   'budapest-ssc-test',
+   'budapest-scu-dm-test',
    'budapest-uart-gpio-test',
-   'budapest-pmu-gpio-wake-test']
+   'budapest-pmu-gpio-wake-test',
+   'budapest-lin-pmu-wake-test',
+   'budapest-scu-peripheral-clock-test']
 
 qtests_arm = \
   (config_all_devices.has_key('CONFIG_MPS2') ? ['sse-timer-test'] : []) + \

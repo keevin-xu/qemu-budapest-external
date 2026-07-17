@@ -120,6 +120,26 @@ bootrom/unlock path, a loader bypass, or different protection defaults.
 
 The emulated peripherals should be based on the Infineon TLE9854 family.
 
+### Highest-Priority Address Sources
+
+Before using a datasheet, user manual, SDK header, Renode model, or existing
+QEMU constant for an address, inspect these project files:
+
+- `hw/arm/budapest/peripherals/budapest.repl` is the highest-priority source
+  for Budapest block locations, peripheral base addresses, mapped memory
+  regions, and intentionally retained stub regions.
+- `hw/arm/budapest/peripherals/peripherals.txt` is the highest-priority source
+  for Budapest peripheral register names, register ordering, and register
+  offsets within each block.
+
+These two files override generic TLE9854/TLE985x documentation and existing
+implementation constants when addresses or register layouts disagree. Record
+such conflicts in `hw/arm/budapest/docs/implementation/address-map-audit.md`.
+They do not by themselves define reset values, field masks, access types, or
+side effects; use Budapest design specifications and the supplied hardware
+manual sections for those behaviors. Do not infer undocumented behavior from a
+register name or location.
+
 The user will provide hardware documents as needed. Use Budapest project design
 specs as the first source of truth for implementation decisions. If no relevant
 Budapest design spec or project-specific model exists for the behavior being
@@ -129,6 +149,8 @@ project-specific choice in the relevant spec, behavior doc, or code comment.
 
 Primary references, in priority order:
 
+- `hw/arm/budapest/peripherals/budapest.repl` for block locations and bases
+- `hw/arm/budapest/peripherals/peripherals.txt` for register maps and offsets
 - Budapest digital design specifications and project-specific model docs
 - TLE9854 datasheet
 - TLE985x/TLE9854 user manual
